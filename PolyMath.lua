@@ -25,14 +25,12 @@ function PolyMath.clamp01(x)
 end
 
 function PolyMath.wrap(x, lo, hi)
-	local range = hi - lo + 1
+	local range = hi - lo
 	return ((x - lo) % range + range) % range + lo
 end
 
 function PolyMath.map(x, inLo, inHi, outLo, outHi, clamp)
 	if not tonumber(x) or not tonumber(inLo) or not tonumber(inHi) or not tonumber(outLo) or not tonumber(outHi) then return end
-	inLo, inHi = swap(inLo, inHi)
-	outLo, outHi = swap(outLo, outHi)
 
 	local mapped = (x - inLo) * (outHi - outLo) / (inHi - inLo) + outLo
 
@@ -44,13 +42,13 @@ function PolyMath.map(x, inLo, inHi, outLo, outHi, clamp)
 end
 
 function PolyMath.lerp(a, b, t, clamp)
-	local lerped = a + (b - a) * t
+	if not tonumber(a) or not tonumber(b) or not tonumber(t) then return end
 	
 	if clamp == true then
-		lerped = PolyMath.clamp(lerped, 0, 1)
+		t = PolyMath.clamp01(t)
 	end
 
-	return lerped
+	return a + (b - a) * t
 end
 
 function PolyMath.inverseLerp(a, b, x, clamp)
@@ -59,7 +57,7 @@ function PolyMath.inverseLerp(a, b, x, clamp)
 	local lerped = (x - a) / (b - a)
 	
 	if clamp then
-		lerped = PolyMath.clamp(lerped, a, b)
+		lerped = PolyMath.clamp01(lerped)
 	end
 	
 	return lerped
@@ -74,11 +72,7 @@ function PolyMath.approximately(a, b, eps)
 	if not tonumber(eps) then eps = 0.000001 end
 	if not tonumber(a) or not tonumber(b) then return end
 
-	a = PolyMath.abs(a)
-	b = PolyMath.abs(b)
-	a, b = swap(a, b)
-
-	return (b - a) <= eps
+	return PolyMath.abs(a - b) <= eps
 end
 
 function PolyMath.floor(x)
@@ -113,7 +107,7 @@ function PolyMath.trunc(x)
 end
 
 function PolyMath.round(x, digs)
-	if tonumber(digs) == 0 or not tonumber(digs) then return x end
+	if not tonumber(digs) then digs = 0 end
 
 	local multiplier = 10^digs
 	return PolyMath.floor(x * multiplier + 0.5) / multiplier
@@ -127,23 +121,8 @@ function PolyMath.sign(x)
 end
 
 function PolyMath.mod(x, m)
-	if not tonumber(x) then return end
-	if not tonumber(m) then return x end
-	if x >= 0 and x < m then return x end
-	if m == 0 then return x end
-	if x == m then return 0 end	
-
-	if x > 0 and m > 0 then
-		repeat x = x - m until x < m
-	elseif x < 0 and m > 0 then
-		repeat x = x + m until x > 0
-	elseif x > 0 and m < 0 then
-		repeat x = x + m until x < 0
-	elseif x < 0 and m < 0 then
-		repeat x = x - m until x > m
-	end
-	
-	return x
+	if not tonumber(x) or not tonumber(m) or m == 0 then return end
+	return ((x % m) + m) % m
 end
 
 function PolyMath.moveTowards(c, t, d)
@@ -158,5 +137,8 @@ function PolyMath.moveTowards(c, t, d)
 	return c - d
 end
 
+function PolyMath.deg2rad(d) return d * 0.017453292519943 end
+function PolyMath.rad2deg(r) return r * 57.295779513082 end
+function PolyMath.signNonZero(x) return x < 0 and -1 or 1 end
 
 return PolyMath
